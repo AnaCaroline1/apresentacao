@@ -1,0 +1,12 @@
+project:
+  type: website
+  output-dir: docs
+format: 
+  revealjs:
+    chalkboard: 
+      buttons: false
+    css: style.css
+    slide-number: true
+    bibliography: referencia.bib
+    csl: associacao-brasileira-de-normas-tecnicas-note.csl
+    progress: true
