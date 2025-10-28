@@ -10,6 +10,8 @@ library(dplyr)
 library(ggplot2)
 library(tibble)
 library(ggsurvfit)
+library(coin)
+#install.packages("coin")
 ```
 
 ```{r echo=FALSE}
@@ -18,7 +20,6 @@ help(lung)
 head(lung)
 
 lung$status_evento <- lung$status - 1
-
 
 ```
 
@@ -65,6 +66,27 @@ ekm_gen <- survfit(Surv(time, status_evento)~sex,lung)
 
 ekm_id <- survfit(Surv(time, status_evento)~age,lung)
 
+ekm_g <- survfit(Surv(time, status_evento)~1,lung, conf.type="plain")
+
+plot(ekm_g,conf.int = T, xlab="Tempo(em dias)", ylab="S(t) estimada",mark.time=T)
+
+```
+
+Estimativas do tempo médio e variância
+
+```{r echo=FALSE}
+
+aux <- summary(ekm_gen)
+tm <- aux$time[1] + sum(diff(aux$time)*aux$surv[-length(aux$surv)])
+
+source("https://docs.ufpr.br/~giolo/asa/arquivos/var_tm.txt")
+
+var.tmedio <- var_tm(ekm_g)
+
+```
+
+
+```{r echo = False}
 survfit2(Surv(time, status_evento)~ph.ecog,lung) %>% 
   ggsurvfit() +
   labs(
@@ -86,6 +108,14 @@ survfit2(Surv(time, status_evento)~sex,lung) %>%
     y = "Eventos"
   )
 ```
+
+```{r echo = False}
+
+enal <-(survfit(coxph(Surv(time[sex == 2], status_evento[sex == 2])~1,lung),method = "breslow"))
+
+```
+
+
 A escala ECOG (Eastern Cooperative Oncology Group) é um instrumento médico usado para avaliar o estado funcional de pacientes com câncer e outras doenças, classificando-o em uma escala de 0 a 5. A pontuação 0 indica que o paciente está completamente ativo e sem restrições, enquanto a pontuação 5 indica morte. Ela ajuda os médicos a entender como a doença afeta as atividades diárias do paciente, sendo usada para definir o prognóstico e planejar o tratamento. 
 
 Como a escala funciona:
@@ -106,7 +136,7 @@ A escala Karnofsky é uma escala de 11 níveis (de 0 a 100) utilizada para avali
 
 No primeiro gráfico temos que pacientes com a classificação de 3 e 2 na escala ECOG morreram durante o período de estudo, logo pacientes menos ativos que possuem dificuldade de realizar atividades diárias e que passam mais de 50% do dia acamado, tem mais chance de morrerem dados o prognóstico de câncer de pulmão avançado. Os que precisam mais de auxílio morrem mais rápido que os que passam apenas 50% do dia acamados.
 
-No segundo gráfico, temos as pontuações da escala Karnofsky que avalia o desempenho funcional dos paciente, temos pontuações iguais e superiores a 50, indicando o nível de autonomia dos pacientes em atividades cotidianas e a eficácia de tratamentos e prognóstico. Uma observação se dá nas pontuações 60 e 90, onde uma indica um diagnóstico 
+No segundo gráfico, temos as pontuações da escala Karnofsky que avalia o desempenho funcional dos paciente, temos pontuações iguais e superiores a 50, indicando o nível de autonomia dos pacientes em atividades cotidianas e a eficácia de tratamentos e prognóstico. Uma observação se dá nas pontuações 60 e 90, onde uma indica um diagnóstico. 
 
 O gráfico mostra a sobrevivência estimada pelo estimador KM dada as pontuações de desempenho dada pelo médico a pacientes terminais de câncer de pulmão que possuem capacidade de realizar atividades diárias habituais.
 
