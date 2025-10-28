@@ -1,0 +1,130 @@
+---
+title: "cancer-pulmao"
+format: html
+---
+```{r include=FALSE}
+library(survival)
+library(survminer)
+library(knitr)
+library(dplyr)
+library(ggplot2)
+library(tibble)
+library(ggsurvfit)
+```
+
+```{r echo=FALSE}
+lung
+help(lung)
+head(lung)
+
+lung$status_evento <- lung$status - 1
+
+
+```
+
+
+## Descrição do banco de dados Lung Câncer
+
+Sobrevida em pacientes com câncer de pulmão avançado do North Central Cancer Treatment Group. As pontuações de desempenho avaliam a capacidade do realizar atividades diárias habituais.
+
+## Formato
+
+inst: Código da instituição
+
+time: Tempo de sobrevivência em dias
+
+status: status de censura 1=censurado, 2=morto
+
+age: Idade em anos
+
+sex: Masculino=1 Feminino=2
+
+ph.ecog: Pontuação de desempenho do ECOG conforme avaliação do médico. 0=assintomático, 1= sintomático, mas completamente ambulatorial, 2= acamado <50% do dia, 3= acamado > 50% do dia, mas não acamado, 4 = acamado
+
+ph.karno: Pontuação de desempenho de Karnofsky (ruim=0-bom=100) avaliada pelo médico
+
+pat.karno: Pontuação de desempenho de Karnofsky conforme avaliação do paciente
+
+meal.cal: Calorias consumidas nas refeições
+
+wt.loss: Perda de peso nos últimos seis meses (libras)
+
+> O uso de 1/2 para vivo/morto em vez do usual 0/1 é uma nota de rodapé histórica. Para dados contidos em cartões perfurados, o Fortran do IBM 360 tratava o espaço em branco como zero, o que levou a uma política na seção de Bioestatística de nunca usar "0" como valor de dado, já que não era possível distingui-lo de um valor ausente. A política tornou-se um hábito, como costuma acontecer; e a codificação 1/2 perdurou por muito tempo após o fim dos cartões perfurados e do Fortran. 
+
+Para a análise, baseado no livro Análise de sobrevivência de Colossimo, a variável status foi descartada para se utilizar das definições descrita no livro, portanto a nova variável para como nome status_evento: 0=censurado e 1=morto. Como sendo os eventos de censura e o evento de interesse.
+
+
+```{r echo = False}
+ekm_ph_karno <- survfit(Surv(time, status_evento)~ph.karno,lung)
+
+ekm_pat_karno <- survfit(Surv(time, status_evento)~pat.karno,lung)
+
+ekm_ecog <- survfit(Surv(time, status_evento)~ph.ecog,lung)
+
+ekm_gen <- survfit(Surv(time, status_evento)~sex,lung)
+
+ekm_id <- survfit(Surv(time, status_evento)~age,lung)
+
+survfit2(Surv(time, status_evento)~ph.ecog,lung) %>% 
+  ggsurvfit() +
+  labs(
+    x = "ph.ecog: 0 - assintomático, 1 - sintomático, 2 - acamado < 50% do dia, 3 - acamado > 50% do dia",
+    y = "Eventos"
+  )
+
+survfit2(Surv(time, status_evento)~ph.karno,lung) %>% 
+  ggsurvfit() +
+  labs(
+    x = "ph.karno: Pontuação de desempenho de Karnofsk (ruim=0,bom=100)",
+    y = "Eventos"
+  )
+
+survfit2(Surv(time, status_evento)~sex,lung) %>% 
+  ggsurvfit() +
+  labs(
+    x = "Sexo: 1 - Masculino, 2 - Feminino",
+    y = "Eventos"
+  )
+```
+A escala ECOG (Eastern Cooperative Oncology Group) é um instrumento médico usado para avaliar o estado funcional de pacientes com câncer e outras doenças, classificando-o em uma escala de 0 a 5. A pontuação 0 indica que o paciente está completamente ativo e sem restrições, enquanto a pontuação 5 indica morte. Ela ajuda os médicos a entender como a doença afeta as atividades diárias do paciente, sendo usada para definir o prognóstico e planejar o tratamento. 
+
+Como a escala funciona:
+
+0: Paciente totalmente ativo, capaz de realizar todas as atividades normais sem restrições.
+
+1: O paciente é capaz de se manter de pé e se movimentar sozinho, mas tem menos energia e realiza as atividades com mais dificuldade.
+
+2: O paciente consegue ficar de pé e se movimentar, mas não é capaz de trabalhar. Precisa de algum auxílio para tarefas diárias.
+
+3: O paciente precisa de ajuda para a maior parte das atividades diárias.
+
+4: O paciente está confinado à cama e necessita de ajuda para todas as suas necessidades.
+
+5: Morte. 
+
+A escala Karnofsky é uma escala de 11 níveis (de 0 a 100) utilizada para avaliar o status de desempenho funcional de um indivíduo, especialmente em pacientes com câncer. Ela mensura a capacidade de uma pessoa realizar atividades diárias, autocuidado e trabalho, sendo usada para avaliar a eficácia de tratamentos e determinar o prognóstico. Pontuações mais altas indicam maior capacidade funcional, enquanto pontuações mais baixas significam pior prognóstico e maior dependência. 
+
+No primeiro gráfico temos que pacientes com a classificação de 3 e 2 na escala ECOG morreram durante o período de estudo, logo pacientes menos ativos que possuem dificuldade de realizar atividades diárias e que passam mais de 50% do dia acamado, tem mais chance de morrerem dados o prognóstico de câncer de pulmão avançado. Os que precisam mais de auxílio morrem mais rápido que os que passam apenas 50% do dia acamados.
+
+No segundo gráfico, temos as pontuações da escala Karnofsky que avalia o desempenho funcional dos paciente, temos pontuações iguais e superiores a 50, indicando o nível de autonomia dos pacientes em atividades cotidianas e a eficácia de tratamentos e prognóstico. Uma observação se dá nas pontuações 60 e 90, onde uma indica um diagnóstico 
+
+O gráfico mostra a sobrevivência estimada pelo estimador KM dada as pontuações de desempenho dada pelo médico a pacientes terminais de câncer de pulmão que possuem capacidade de realizar atividades diárias habituais.
+
+O gráfico mostra a sobreviência estimada pelo estimador de Kaplan-Meier para os sexos Masculino e Feminino de pacientes com câncer de Pulmão Avançado, tempo em dias.
+
+
+Referências
+
+Loprinzi CL. Laurie JA. Wieand HS. Krook JE. Novotny PJ. Kugler JW. Bartel J. Law M. Bateman M. Klatt NE. et al. Prospective evaluation of prognostic variables from patient-completed questionnaires. North Central Cancer Treatment Group. Journal of Clinical Oncology. 12(3):601-7, 1994.
+
+
+
+
+
+
+
+
+
+
+
+

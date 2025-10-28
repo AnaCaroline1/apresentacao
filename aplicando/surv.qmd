@@ -1,0 +1,90 @@
+---
+title: "Capítulo II: Exemplos do Estimador Kaplan-Meier"
+author: 
+    - "Ana Caroline Alexandre Pantoja"
+format:
+  pdf:
+    documentclass: article  # Tipo de documento (artigo, relatC3rio, livro, etc.)
+    toc: true               # Cria um sumC!rio (table of contents)
+    toc-title: "Sumário"
+    list-of-figures: true
+    toc-depth: 3            # NC-vel dos tC-tulos no sumC!rio (h1, h2)
+    fontsize: 12pt          # Tamanho da fonte
+    linestretch: 1.5        # EspaC'amento entre linhas
+    geometry: 
+      - "left=1in"
+      - "right=1in"
+      - "top=1in"
+      - "bottom=1in"  # Define as margens (top, bottom, left, right)
+    header-includes: |
+      \usepackage[utf8]{inputenc}
+      \let\oldtableofcontents\tableofcontents
+      \renewcommand{\tableofcontents}{\newpage\thispagestyle{empty}\oldtableofcontents}
+      \usepackage{amsfonts, amsmath, amsthm}
+      \usepackage{amssymb}
+      \usepackage{graphicx}
+      \usepackage{float}
+      \usepackage{tabu}
+      \usepackage{indentfirst}
+      \usepackage{hhline}
+      \setlength{\headheight}{2cm}
+      \setlength{\topmargin}{-2.0cm}
+
+      \usepackage{fancyhdr}
+      \pagestyle{fancy}
+      \lhead{Universidade Federal do Pará}
+      \rhead{Faculdade de EstatC-stica}
+      \usepackage{graphicx}
+    # template-partials:
+    #  - title.tex       Arquivo para customizar a capa (title page)
+    # OpC'C5es para referC*ncias
+    bibliography: references.bib
+    csl: associacao-brasileira-de-normas-tecnicas-note.csl
+    link-citations: true
+    # OpC'C#o para controlar a numeraC'C#o de seC'C5es
+lang: pt
+---
+
+```{r include =FALSE}
+library(survival)
+library(knitr)
+library(dplyr)
+library(ggplot2)
+library(tibble)
+library(ggsurvfit)
+```
+
+O Estimador de Kaplan-Meier
+
+Estimador para a função de sobrevivência, sendo muito utilizado em estudos clínicos e epdemiológicos. É um estimador não paramétrico, proposto por Kaplan e Meier (1958) para estimar a função de sobrevivência quando o conjunto de dados apresenta censura, sendo conhecido como estimador produto-limite. Sendo uma extensão da função de sobrevivência empírica.
+
+Para construção do estimador, os intervalos de tempo são definidos de acordo com o número de tempos distintos de falha. Quanto maior esse número, maior o número de intervalos de tempo. 
+
+# 1.4.1 Dados de hepatite viral aguda 
+
+
+Um ensaio clínico foi realizado para investigar o efeito de uma terapia com esteroide no tratamento de hepatite viral aguda. Os 29 pacientes com a doença foram aleatorizados para receber um placebo ou o tratamento com esteróide. O acompanhamento de cada paciente foi de no máximo 16 semanas.
+
+Considere os tempos de sobrevida do grupo esteroide dos dados de hepatite descritos. Em que mortes foram registradas nas semanas 1, 5, 7, 8 e 10. Para obtenção da estimativa Kaplan-Meier, o procedimento envolve uma sequência de passos em que o próximo depende do anterior.
+
+
+
+```{r echo=FALSE}
+
+tempos<-c(1,2,3,3,3,5,5,16,16,16,16,16,16,16,16,1,1,1,1,4,5,7,8,10,10,12,16,16,16) 
+
+cens<-c(0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,1,1,1,1,0,0,0,0,0)
+
+grupos<-c(rep("Controle",15),rep("Esteroide",14)) 
+
+dados<-data.frame(tempos,cens,grupos) 
+
+ekm<-survfit(Surv(tempos,cens) ~ grupos,dados); summary(ekm); 
+
+par(mfrow=c(1,1)) 
+
+plot(ekm,lty=c(2,1),xlab="Tempo (em semanas)",ylab="S(t) estimada",mark.time=F) 
+
+legend(1,0.3,lty=c(2,1),c("Controle","Esteroide"),lwd=1,bty="n")
+
+```
