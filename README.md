@@ -1,2 +1,2 @@
 # PIBIC
-Apresentações, relatórios e trabalhosd
+Apresentação de introdução aos conceitos de Análise de Sobrevivência.
